@@ -1,5 +1,5 @@
-#ifndef __AP_INFO__
-#define __AP_INFO__
+#ifndef __AP_LIST__
+#define __AP_LIST__
 
 /*TODO Добавить библиотеку с тредами*/
 
@@ -13,9 +13,21 @@ typedef struct ap_info_s
   const char *ap_id;    // MAC-адрес ТД
   const char *ap_name;  // Уникальный идентификатор локации ТД
   //TODO Добавить данные конфигурации
-  struct wap_info_s *next;
-}wap_info_t;
+  struct ap_info_s *next;
+}ap_info_t;
 
-extern ap_info_t *ap_head;
+typedef struct ap_list_s
+{
+  ap_info_t *head;
+}ap_list_t;
+
+extern ap_list_t *ap_list;
+
+/*[Действие] Инициализация стека для хранения списка ТД и их данных*/
+int init_ap_list(void);
+/*[Действие] Регистрация ТД в системе или обновление ее данных*/
+ap_info_t* register_ap(void *message);
+/*[Действие] Очистка стека записей о ТД*/
+int destroy_ap_list(void);
 
 #endif
