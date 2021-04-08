@@ -1,6 +1,8 @@
 #ifndef __RADAR__
 #define __RADAR__
 
+#include <time.h>
+
 /*Возвращаемые значения функций*/
 #define ERROR -1
 #define VALID 0
