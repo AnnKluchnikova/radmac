@@ -2,6 +2,8 @@
 #include <stdarg.h>
 #include "json-parser.h"
 
+/*TODO Переписать библиотеку*/
+
 /* Функция, считывающая данные из файла и записывающая в объект json
  * для хранения в памяти*/
 json_object* json_get_table(const char *filename)
@@ -87,6 +89,8 @@ void json_add_new_elem_in_array(json_object *array, const char *key, void *value
 
 /* Функция создает объект и копирует в него данные из другого объекта
  * по указанным ключам, после чего добавляет объект в массив*/
+
+/*TODO Хорошо подумать над копированием, возможно поможет json_object_get()*/
 void json_add_obj_by_keys_to_array(json_object *array, json_object *obj,
                                    int num_keys, ...)
 {
@@ -95,7 +99,7 @@ void json_add_obj_by_keys_to_array(json_object *array, json_object *obj,
   json_object* value = NULL;
   json_object* new_obj = NULL;
 
-  char *string = NULL; // *
+  const char *string = NULL; // *
   int digit = 0; // *
 
   if(num_keys == 0)
@@ -147,8 +151,40 @@ const char* json_get_serialize(json_object* context)
 int json_save_to_file(const char* filename, json_object* contect)
 {
   FILE *fd = fopen(filename, "w+");
+  if(fd == NULL)
+    return -1;
+
   fprintf(fd, "%s\n", json_get_serialize(contect));
   fclose(fd);
 
   return 0;
+}
+
+/*[Действие] Функция парсит файл, формируя объект json
+ *
+ *[Примечание] Используется стандартная функция json-c, которая может привести
+ *             к падению проекта, если файл окажется пустым. Поэтому в функцию
+ *             отдельно включена задача проверки файла на не пустоту*/
+void* json_read_obj_from_file(const char* filename)
+{
+  int pos = 0;
+  void *context = NULL;
+
+  /*Проверка файла на пустоту*/
+  FILE *fd = fopen(filename, "r");
+  /*Ставим указатель в конец*/
+  fseek(fd, 0, SEEK_END);
+
+  /*Получаем номер позиции*/
+  pos = ftell(fd);
+  if(pos == 0)
+  {
+    fclose(fd);
+    return NULL;
+  }
+
+  fclose(fd);
+  context = json_object_from_file(filename);
+
+  return context;
 }

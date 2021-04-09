@@ -38,4 +38,11 @@ int json_get_int_from_array(json_object *array, int index, const char *key);
 /*Функция для записи объекта json в создаваемый файл в "красивом" виде*/
 int json_save_to_file(const char* filename, json_object* contect);
 
+/*[Действие] Функция парсит файл, формируя объект json
+ *
+ *[Примечание] Используется стандартная функция json-c, которая может привести
+ *             к падению проекта, если файл окажется пустым. Поэтому в функцию
+ *             отдельно включена задача проверки файла на не пустоту*/
+void* json_read_obj_from_file(const char* filename);
+
 #endif

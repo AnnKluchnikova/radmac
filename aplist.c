@@ -1,20 +1,24 @@
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "aplist.h"
-#include "radmac.h"
+#include "json-parser.h"
+
+//==============================================================================
 
 ap_list_t *ap_list = NULL;
 
 //==============================================================================
 
-ap_info_t* add_new_link(void *message)
+/**/
+ap_info_t* reg_new_ap(void *message)
 {
   ap_info_t *new = calloc(1, sizeof(ap_info_t));
 
   new->last_conn = time(NULL);
-  new->ap_id = json_get_string_from_object(message, "ap_id");
-  new->ap_name = json_get_string_from_object(message, "ap_name");
+  new->ap_id = strdup(json_get_string_from_object(message, "ap_id"));
+  new->ap_name = strdup(json_get_string_from_object(message, "ap_name"));
   /*TODO Данные конфигурации*/
   pthread_mutex_init(&new->ap_lock, NULL);
 
@@ -32,6 +36,7 @@ ap_info_t* add_new_link(void *message)
   return ap_list->head;
 }
 
+/**/
 ap_info_t* get_link_to_id(const char* ap_id)
 {
   ap_info_t *link = ap_list->head;
@@ -49,7 +54,8 @@ ap_info_t* get_link_to_id(const char* ap_id)
   return link;
 }
 
-void clear_list(void)
+/**/
+void clear_auth_list(void)
 {
   ap_info_t *link = NULL;
   ap_info_t *next = NULL;
@@ -62,7 +68,12 @@ void clear_list(void)
   while(link != NULL)
   {
     next = link->next;
+
+    free(link->ap_id);
+    free(link->ap_name);
+    pthread_mutex_destroy(&link->ap_lock);
     free(link);
+
     link = next;
   }
 }
@@ -79,12 +90,15 @@ int init_ap_list(void)
   return VALID;
 }
 
-/*[Действие] Регистрация ТД в системе или обновление ее данных*/
-ap_info_t* register_ap(void *message)
+/*[Действие] Авторизация ТД в системе или регистрация новой*/
+ap_info_t* auth_ap(void *message)
 {
   ap_info_t *ap = get_link_to_id(json_get_string_from_object(message, "ap_id"));
   if(ap == NULL)
-    ap = add_new_link();
+    ap = reg_new_ap(message);
+
+  ap->ap_message = message;
+  /*TODO Пишем в лог о соединении с ТД*/
   return ap;
 }
 
@@ -94,6 +108,8 @@ int destroy_ap_list(void)
   if(ap_list == NULL)
     return ERROR;
 
-  clear_list();
+  clear_auth_list();
   free(ap_list);
+
+  return VALID;
 }
